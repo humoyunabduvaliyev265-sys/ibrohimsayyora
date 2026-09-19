@@ -12,11 +12,15 @@ import {
   Search,
   Sliders,
   HelpCircle,
+  Telescope,
+  Globe,
 } from 'lucide-react';
-import { ScaleMode, ViewCategory, CelestialBodyData } from '../types';
+import { ScaleMode, ViewCategory, CelestialBodyData, AppViewMode } from '../types';
 import { spaceAudio } from '../utils/spaceAudio';
 
 interface ControlsOverlayProps {
+  appMode: AppViewMode;
+  onSetAppMode: (mode: AppViewMode) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetView: () => void;
@@ -40,6 +44,8 @@ interface ControlsOverlayProps {
 }
 
 export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
+  appMode,
+  onSetAppMode,
   onZoomIn,
   onZoomOut,
   onResetView,
@@ -75,7 +81,7 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
   return (
     <>
       {/* Top Navigation Bar */}
-      <header className="absolute top-0 left-0 right-0 z-20 px-4 py-3 bg-gradient-to-b from-slate-950/90 via-slate-950/60 to-transparent backdrop-blur-sm flex flex-col md:flex-row items-center justify-between gap-3 pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 z-30 px-4 py-3 bg-gradient-to-b from-slate-950/95 via-slate-950/75 to-transparent backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-3 pointer-events-none">
         {/* Title & Brand */}
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 via-indigo-600 to-amber-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-cyan-400/30">
@@ -83,12 +89,46 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
           </div>
           <div>
             <h1 className="text-base md:text-lg font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-white to-amber-200">
-              KOINOT 3D: SAYYORALAR SAYRI
+              KOINOT VA SAYYORALAR OBSERVATORIYASI
             </h1>
             <div className="text-[11px] text-slate-400 font-medium">
-              Interaktiv teleskop va 3D quyosh tizimi
+              NASA va xalqaro kosmik agentliklarning real fotosuratlari va teleskopik tahlili
             </div>
           </div>
+        </div>
+
+        {/* Center: Real Observatory vs 3D Space Switcher */}
+        <div className="flex items-center p-1 bg-slate-900/90 backdrop-blur-md rounded-2xl border border-cyan-500/30 shadow-xl pointer-events-auto">
+          <button
+            id="btn-mode-real-observatory"
+            onClick={() => {
+              spaceAudio.playSelectSound();
+              onSetAppMode('telescope');
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              appMode === 'telescope'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Telescope className="w-3.5 h-3.5" />
+            <span>🛰️ Haqiqiy Observatoriya</span>
+          </button>
+          <button
+            id="btn-mode-space3d"
+            onClick={() => {
+              spaceAudio.playSelectSound();
+              onSetAppMode('space3d');
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              appMode === 'space3d'
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>🌌 3D Orbita</span>
+          </button>
         </div>
 
         {/* Category Filter Pills & Search */}
@@ -133,17 +173,7 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Mitti sayyoralar
-            </button>
-            <button
-              onClick={() => onSelectCategory('exoplanets')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-                activeCategory === 'exoplanets'
-                  ? 'bg-cyan-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Ekzosayyoralar
+              Mitti
             </button>
           </div>
 
@@ -223,141 +253,145 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
         </div>
       </header>
 
-      {/* Floating Left Camera Controls */}
-      <div className="absolute left-4 top-20 z-20 flex flex-col gap-2 pointer-events-auto">
-        <div className="p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-700/60 shadow-xl flex flex-col gap-1 text-slate-200">
-          <button
-            id="btn-camera-zoom-in"
-            onClick={onZoomIn}
-            title="Yaqinlashtirish (Zoom In)"
-            className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-300 hover:text-white"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <button
-            id="btn-camera-zoom-out"
-            onClick={onZoomOut}
-            title="Uzoqlashtirish (Zoom Out)"
-            className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-300 hover:text-white"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <div className="w-full h-px bg-slate-800 my-0.5" />
-          <button
-            id="btn-camera-reset"
-            onClick={onResetView}
-            title="Quyosh tizimini to'liq ko'rish (Reset)"
-            className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-300 hover:text-cyan-300"
-          >
-            <Maximize2 className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Visibility Toggles */}
-        <div className="p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-700/60 shadow-xl flex flex-col gap-1 text-slate-200">
-          <button
-            id="btn-toggle-orbits"
-            onClick={onToggleOrbits}
-            title={showOrbits ? "Orbita izlarini yashirish" : "Orbita izlarini ko'rsatish"}
-            className={`p-2 rounded-xl transition-colors ${
-              showOrbits
-                ? 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/40'
-                : 'text-slate-400 hover:bg-slate-800'
-            }`}
-          >
-            {showOrbits ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-          </button>
-          <button
-            id="btn-toggle-labels"
-            onClick={onToggleLabels}
-            title={showLabels ? "Sayyora nomlarini yashirish" : "Sayyora nomlarini ko'rsatish"}
-            className={`px-2 py-1.5 text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center ${
-              showLabels
-                ? 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
-                : 'text-slate-400 hover:bg-slate-800'
-            }`}
-          >
-            ABC
-          </button>
-        </div>
-
-        {/* Scale Mode Switcher */}
-        <div className="p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-700/60 shadow-xl flex flex-col gap-1">
-          <button
-            id="btn-scale-visual"
-            onClick={() => onSetScaleMode('visual')}
-            title="Qulay ko'rgazmali masshtab"
-            className={`px-2 py-1 text-[10px] font-medium rounded-lg transition-colors ${
-              scaleMode === 'visual'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Ko'rgazmali
-          </button>
-          <button
-            id="btn-scale-logarithmic"
-            onClick={() => onSetScaleMode('logarithmic')}
-            title="Logarifmik real masofa masshtabi"
-            className={`px-2 py-1 text-[10px] font-medium rounded-lg transition-colors ${
-              scaleMode === 'logarithmic'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Haqiqiy
-          </button>
-        </div>
-      </div>
-
-      {/* Floating Bottom-Left Time Simulator Controller */}
-      <div className="absolute left-4 bottom-24 z-20 pointer-events-auto">
-        <div className="p-2 rounded-2xl bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-2xl flex items-center gap-2 text-slate-200">
-          <button
-            id="btn-toggle-play-pause"
-            onClick={onTogglePause}
-            className={`p-2 rounded-xl transition-colors ${
-              isPaused
-                ? 'bg-amber-500 text-slate-950 font-bold'
-                : 'bg-cyan-600/40 text-cyan-300 hover:bg-cyan-600/60'
-            }`}
-            title={isPaused ? "Davom ettirish" : "To'xtatib turish"}
-          >
-            {isPaused ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
-          </button>
-
-          {/* Speed Presets */}
-          <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
-            {speedOptions.map((spd) => (
+      {/* Floating 3D Navigation Controls (only in 3D Mode) */}
+      {appMode === 'space3d' && (
+        <>
+          <div className="absolute left-4 top-24 z-20 flex flex-col gap-2 pointer-events-auto">
+            <div className="p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-700/60 shadow-xl flex flex-col gap-1 text-slate-200">
               <button
-                key={spd}
-                onClick={() => onSetSimulationSpeed(spd)}
-                className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-semibold transition-all ${
-                  simulationSpeed === spd && !isPaused
-                    ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                id="btn-camera-zoom-in"
+                onClick={onZoomIn}
+                title="Yaqinlashtirish (Zoom In)"
+                className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-300 hover:text-white"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <button
+                id="btn-camera-zoom-out"
+                onClick={onZoomOut}
+                title="Uzoqlashtirish (Zoom Out)"
+                className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-300 hover:text-white"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <div className="w-full h-px bg-slate-800 my-0.5" />
+              <button
+                id="btn-camera-reset"
+                onClick={onResetView}
+                title="Quyosh tizimini to'liq ko'rish (Reset)"
+                className="p-2 hover:bg-slate-800 rounded-xl transition-colors text-slate-300 hover:text-cyan-300"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Visibility Toggles */}
+            <div className="p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-700/60 shadow-xl flex flex-col gap-1 text-slate-200">
+              <button
+                id="btn-toggle-orbits"
+                onClick={onToggleOrbits}
+                title={showOrbits ? "Orbita izlarini yashirish" : "Orbita izlarini ko'rsatish"}
+                className={`p-2 rounded-xl transition-colors ${
+                  showOrbits
+                    ? 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/40'
+                    : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                {showOrbits ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              </button>
+              <button
+                id="btn-toggle-labels"
+                onClick={onToggleLabels}
+                title={showLabels ? "Sayyora nomlarini yashirish" : "Sayyora nomlarini ko'rsatish"}
+                className={`px-2 py-1.5 text-[10px] font-bold rounded-xl transition-colors flex items-center justify-center ${
+                  showLabels
+                    ? 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
+                    : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                ABC
+              </button>
+            </div>
+
+            {/* Scale Mode Switcher */}
+            <div className="p-1.5 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-700/60 shadow-xl flex flex-col gap-1">
+              <button
+                id="btn-scale-visual"
+                onClick={() => onSetScaleMode('visual')}
+                title="Qulay ko'rgazmali masshtab"
+                className={`px-2 py-1 text-[10px] font-medium rounded-lg transition-colors ${
+                  scaleMode === 'visual'
+                    ? 'bg-indigo-600 text-white'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {spd}x
+                Ko'rgazmali
               </button>
-            ))}
+              <button
+                id="btn-scale-logarithmic"
+                onClick={() => onSetScaleMode('logarithmic')}
+                title="Logarifmik real masofa masshtabi"
+                className={`px-2 py-1 text-[10px] font-medium rounded-lg transition-colors ${
+                  scaleMode === 'logarithmic'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Haqiqiy
+              </button>
+            </div>
           </div>
 
-          <div className="hidden sm:block pl-2 border-l border-slate-800 pr-1">
-            <div className="text-[9px] text-slate-400 uppercase tracking-widest font-bold">
-              Simulyatsiya kuni
-            </div>
-            <div className="text-xs font-mono font-bold text-cyan-300">
-              +{Math.floor(simulatedDays)} kun
+          {/* Floating Bottom-Left Time Simulator Controller */}
+          <div className="absolute left-4 bottom-24 z-20 pointer-events-auto">
+            <div className="p-2 rounded-2xl bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-2xl flex items-center gap-2 text-slate-200">
+              <button
+                id="btn-toggle-play-pause"
+                onClick={onTogglePause}
+                className={`p-2 rounded-xl transition-colors ${
+                  isPaused
+                    ? 'bg-amber-500 text-slate-950 font-bold'
+                    : 'bg-cyan-600/40 text-cyan-300 hover:bg-cyan-600/60'
+                }`}
+                title={isPaused ? "Davom ettirish" : "To'xtatib turish"}
+              >
+                {isPaused ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
+              </button>
+
+              {/* Speed Presets */}
+              <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+                {speedOptions.map((spd) => (
+                  <button
+                    key={spd}
+                    onClick={() => onSetSimulationSpeed(spd)}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-semibold transition-all ${
+                      simulationSpeed === spd && !isPaused
+                        ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {spd}x
+                  </button>
+                ))}
+              </div>
+
+              <div className="hidden sm:block pl-2 border-l border-slate-800 pr-1">
+                <div className="text-[9px] text-slate-400 uppercase tracking-widest font-bold">
+                  Simulyatsiya kuni
+                </div>
+                <div className="text-xs font-mono font-bold text-cyan-300">
+                  +{Math.floor(simulatedDays)} kun
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Interactive Guide / Help Modal */}
       {showHelpModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           onClick={() => setShowHelpModal(false)}
         >
           <div
@@ -367,7 +401,7 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-5 h-5 text-cyan-400" />
-                <span>3D Boshqaruv va Qo'llanma</span>
+                <span>Haqiqiy Observatoriya va Boshqaruv</span>
               </h3>
               <button
                 onClick={() => setShowHelpModal(false)}
@@ -379,34 +413,34 @@ export const ControlsOverlay: React.FC<ControlsOverlayProps> = ({
 
             <div className="space-y-3 text-xs leading-relaxed">
               <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex gap-3">
-                <span className="text-lg">🖱️</span>
+                <span className="text-lg">🛰️</span>
                 <div>
-                  <strong className="text-white block mb-0.5">Aylantirish va Burish</strong>
-                  Sichqonchaning chap tugmasini bosib ushlab surish orqali koinot bo'ylab 360 daraja erkin aylanishingiz mumkin.
+                  <strong className="text-white block mb-0.5">Haqiqiy Observatoriya Rejimi</strong>
+                  NASA va xalqaro fazoviy missiyalarning haqiqiy fotosuratlari, Perseverance, Cassini va Hubble zondi tasvirlari hamda yuzadagi nuqtalar.
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex gap-3">
                 <span className="text-lg">🔍</span>
                 <div>
-                  <strong className="text-white block mb-0.5">Yaqinlashtirish (Zoom)</strong>
-                  Sichqoncha g'ildiragini (skroll) aylantirib yoki chapdagi (+) va (-) tugmalari yordamida sayyoralarni eng yaqin masofagacha tomosha qiling.
+                  <strong className="text-white block mb-0.5">Yuzani Yaqindan O'rganish (Deep Zoom)</strong>
+                  Chapdagi (+) va (-) tugmalari yoki sichqoncha g'ildiragi orqali sayyora yuzasini 12 barobargacha chuqur yaqinlashtirib, krater va kanyonlarni ko'rishingiz mumkin.
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex gap-3">
-                <span className="text-lg">🪐</span>
+                <span className="text-lg">📍</span>
                 <div>
-                  <strong className="text-white block mb-0.5">Sayyorani tanlash</strong>
-                  Istalgan 3D sayyorani ustiga bosing yoki pastdagi panel orqali tanlang. Kamera avtomatik ravishda o'sha sayyora qoshiga uchib boradi!
+                  <strong className="text-white block mb-0.5">Geologik Nuqtalar (Pins)</strong>
+                  Sayyora yuzasida yonib turgan ko'k doiralarni bosing (masalan, Marsdagi Olimp tog'i yoki Oyga inson qadami qo'yilgan Osoyishtalik dengizi).
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex gap-3">
-                <span className="text-lg">⚖️</span>
+                <span className="text-lg">🌌</span>
                 <div>
-                  <strong className="text-white block mb-0.5">Yer bilan taqqoslash</strong>
-                  Sayyora ma'lumotlar panelida "Yer bilan solishtirish" tugmasini bosib, hajmi va tortishish kuchini real nisbatda ko'ring.
+                  <strong className="text-white block mb-0.5">3D Orbita Rejimiga O'tish</strong>
+                  Yuqori paneldagi "3D Orbita" tugmasi orqali butun Quyosh tizimining orbital harakatini 3D fazoda kuzatishingiz mumkin.
                 </div>
               </div>
             </div>

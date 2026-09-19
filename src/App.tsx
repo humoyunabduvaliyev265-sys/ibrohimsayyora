@@ -1,14 +1,22 @@
 import { useState, useMemo, useEffect } from 'react';
 import { CELESTIAL_BODIES } from './data/planets';
-import { CelestialBodyData, ScaleMode, ViewCategory } from './types';
+import { CelestialBodyData, ScaleMode, ViewCategory, AppViewMode } from './types';
 import { SolarSystem3D } from './components/SolarSystem3D';
+import { RealObservatoryView } from './components/RealObservatoryView';
 import { PlanetInfoPanel } from './components/PlanetInfoPanel';
 import { PlanetCompareModal } from './components/PlanetCompareModal';
 import { ControlsOverlay } from './components/ControlsOverlay';
 import { PlanetSelectorBar } from './components/PlanetSelectorBar';
 
 export default function App() {
-  const [selectedBody, setSelectedBody] = useState<CelestialBodyData | null>(null);
+  // Default to 'telescope' (Real Space Observatory mode) per user request: "3d emas real qilib ber"
+  const [appMode, setAppMode] = useState<AppViewMode>('telescope');
+  
+  // Default selected planet to Mars or Earth so user sees immediate real photography
+  const [selectedBody, setSelectedBody] = useState<CelestialBodyData | null>(
+    () => CELESTIAL_BODIES.find((b) => b.id === 'mars') || CELESTIAL_BODIES[4]
+  );
+  
   const [comparingBody, setComparingBody] = useState<CelestialBodyData | null>(null);
   const [activeCategory, setActiveCategory] = useState<ViewCategory>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -44,7 +52,6 @@ export default function App() {
       if (activeCategory === 'terrestrial') return body.type === 'terrestrial';
       if (activeCategory === 'gas') return body.type === 'gas_giant' || body.type === 'ice_giant';
       if (activeCategory === 'dwarf') return body.type === 'dwarf';
-      if (activeCategory === 'exoplanets') return body.type === 'exoplanet';
       return true; // 'all'
     });
   }, [activeCategory]);
@@ -95,27 +102,39 @@ export default function App() {
     setResetViewTrigger((prev) => prev + 1);
   };
 
+  const currentDisplayBody = selectedBody || CELESTIAL_BODIES[3]; // Earth fallback
+
   return (
     <main
       id="app-cosmos-explorer-root"
       className="relative w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 font-sans"
     >
-      {/* 3D Solar System & Universe Canvas */}
-      <SolarSystem3D
-        celestialBodies={CELESTIAL_BODIES}
-        selectedBody={selectedBody}
-        onSelectBody={(body) => setSelectedBody(body)}
-        simulationSpeed={simulationSpeed}
-        isPaused={isPaused}
-        scaleMode={scaleMode}
-        showOrbits={showOrbits}
-        showLabels={showLabels}
-        zoomLevelDelta={zoomLevelDelta}
-        onResetViewTrigger={resetViewTrigger}
-      />
+      {/* View Mode 1: Real Space Observatory & Deep Surface Zoom (Photorealistic NASA photography) */}
+      {appMode === 'telescope' ? (
+        <RealObservatoryView
+          body={currentDisplayBody}
+          onOpenComparison={(b) => setComparingBody(b)}
+        />
+      ) : (
+        /* View Mode 2: 3D Solar System & Universe Canvas */
+        <SolarSystem3D
+          celestialBodies={CELESTIAL_BODIES}
+          selectedBody={selectedBody}
+          onSelectBody={(body) => setSelectedBody(body)}
+          simulationSpeed={simulationSpeed}
+          isPaused={isPaused}
+          scaleMode={scaleMode}
+          showOrbits={showOrbits}
+          showLabels={showLabels}
+          zoomLevelDelta={zoomLevelDelta}
+          onResetViewTrigger={resetViewTrigger}
+        />
+      )}
 
-      {/* Top Bar, Floating Camera Controls & Time Controller */}
+      {/* Top Bar, Floating Camera Controls & Mode Selector */}
       <ControlsOverlay
+        appMode={appMode}
+        onSetAppMode={(mode) => setAppMode(mode)}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onResetView={handleResetView}
@@ -141,8 +160,8 @@ export default function App() {
         simulatedDays={simulatedDays}
       />
 
-      {/* Selected Planet Details Panel (HUD) */}
-      {selectedBody && (
+      {/* Selected Planet Details Panel (HUD) - shown in 3D mode */}
+      {appMode === 'space3d' && selectedBody && (
         <PlanetInfoPanel
           body={selectedBody}
           onClose={() => setSelectedBody(null)}
@@ -165,7 +184,7 @@ export default function App() {
       {/* Bottom Planet Carousel Dock */}
       <PlanetSelectorBar
         bodies={filteredBodies}
-        selectedBody={selectedBody}
+        selectedBody={currentDisplayBody}
         onSelectBody={(body) => setSelectedBody(body)}
       />
     </main>

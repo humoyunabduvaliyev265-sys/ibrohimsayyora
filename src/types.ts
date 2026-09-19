@@ -21,6 +21,26 @@ export interface SpaceMission {
   descriptionUz: string;
 }
 
+export interface RealPhoto {
+  titleUz: string;
+  source: string;
+  imageUrl: string;
+  descriptionUz: string;
+}
+
+export interface GeologicalLandmark {
+  id: string;
+  nameUz: string;
+  typeUz: string; // 'Vulqon' | 'Kanyon' | 'Krater' | 'Bo\'ron' | 'Muzlik' | 'Dengiz' | 'Qit\'a'
+  coords: { x: number; y: number }; // percentage on planet view (0-100%)
+  sizeKm?: string;
+  descriptionUz: string;
+  realPhotoUrl: string;
+}
+
+export type TelescopeFilter = 'natural' | 'infrared' | 'radar' | 'night';
+export type AppViewMode = 'telescope' | 'space3d';
+
 export interface CelestialBodyData {
   id: string;
   nameUz: string;
@@ -46,12 +66,23 @@ export interface CelestialBodyData {
   missions: SpaceMission[];
   internalLayers: InternalLayer[];
   
-  // 3D Rendering configuration
+  // Real Photography & Observatory Telemetry
+  realImageUrl: string;
+  infraredImageUrl?: string;
+  radarImageUrl?: string;
+  nightImageUrl?: string;
+  realPhotos: RealPhoto[];
+  landmarks: GeologicalLandmark[];
+  lightTravelTimeSun: string;
+  lightTravelTimeEarth: string;
+  apparentMagnitude: string;
+  
+  // 3D & Visual Rendering configuration
   visual: {
-    baseRadius: number; // relative 3D size
-    distanceAuVisual: number; // scaled distance for viewing
+    baseRadius: number;
+    distanceAuVisual: number;
     realDistanceScale: number;
-    orbitSpeed: number; // relative angular velocity
+    orbitSpeed: number;
     rotationSpeed: number;
     axialTiltDeg: number;
     color: string;
