@@ -1,0 +1,6 @@
+{
+  "name": "Koinot 3D: Sayyoralar Sayri",
+  "description": "Quyosh tizimi va koinotdagi barcha sayyoralarni interaktiv 3D ko'rinishda kuzatish, yaqinlashtirish va tadqiq qilish ilovasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
